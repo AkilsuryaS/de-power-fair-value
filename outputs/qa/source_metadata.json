@@ -38,7 +38,7 @@
     "params": {
       "bzn": "DE-LU",
       "end": "2025-12-31",
-      "start": "2025-07-01"
+      "start": "2024-01-01"
     },
     "source_url": "https://api.energy-charts.info/price",
     "unit": "EUR / MWh"

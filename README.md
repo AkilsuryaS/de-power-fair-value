@@ -38,6 +38,8 @@ If `OPENAI_API_KEY` is available in the environment or a parent `.env`, the memo
 The validation design avoids choosing a model on the final holdout window:
 
 - Baseline: same-hour previous-day price (`lag_24h`).
+- Data window: starts in 2024 so lag and rolling features have enough warm-up history.
+- Training window: starts at `model.training_start` (`2025-01-01` by default) so older regimes inform history features without dominating model fitting.
 - Candidate selection: train candidates on earlier history and choose the lowest-MAE model on a later tuning window.
 - Final validation: retrain the selected model on all data before the holdout, then evaluate once on the untouched holdout.
 
@@ -58,7 +60,7 @@ The selected model in the latest run is `hist_gradient_boosting_absolute_error`.
 
 ## Prompt-Curve Translation
 
-The default config compares the model's fair-value delivery-day base and peak strips with a trailing seven-day day-ahead proxy when explicit broker or exchange prompt-week marks are not supplied. For a more realistic desk workflow, set `curve.front_week_base_eur_mwh` and `curve.front_week_peak_eur_mwh` in `configs/default.yml`. The default six-month window is deliberately API-friendly; widen `data.start` only if you are comfortable with longer public API pulls.
+The default config compares the model's fair-value delivery-day base and peak strips with a trailing seven-day day-ahead proxy when explicit broker or exchange prompt-week marks are not supplied. For a more realistic desk workflow, set `curve.front_week_base_eur_mwh` and `curve.front_week_peak_eur_mwh` in `configs/default.yml`.
 
 Decision rule:
 

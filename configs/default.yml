@@ -10,7 +10,7 @@ market:
   timezone: "Europe/Berlin"
 
 data:
-  start: "2025-07-01"
+  start: "2024-01-01"
   end: "2025-12-31"
   forecast_date: "2025-12-31"
   raw_dir: "data/raw"
@@ -23,6 +23,7 @@ validation:
 
 model:
   random_state: 42
+  training_start: "2025-01-01"
 
 curve:
   threshold_eur_mwh: 5.0

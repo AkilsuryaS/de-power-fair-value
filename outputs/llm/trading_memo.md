@@ -1,17 +1,28 @@
 # DE-LU Day-Ahead Power Fair-Value Memo – 2025-12-31
 
-**Signal Summary:**  
-The hist_gradient_boosting_absolute_error model shows strong performance improvements over the baseline, halving MAE from 24.34 to 12.33 EUR/MWh and reducing RMSE from 39.64 to 21.64 EUR/MWh. The model’s fair-value base price is 79.52 EUR/MWh, with peak at 85.19 EUR/MWh and offpeak at 73.84 EUR/MWh. Hourly fair values range from a low of 59.19 to a high of 94.57 EUR/MWh.
+**1. Signal Summary**  
+The hist_gradient_boosting_absolute_error model shows strong performance with an improved MAE of 11.15 EUR/MWh versus the baseline 24.34 EUR/MWh, and RMSE reduced to 17.31 from 39.64. Fair-value prices for the day-ahead DE-LU market are:  
+- Base: €78.93/MWh  
+- Peak: €82.11/MWh  
+- Offpeak: €75.75/MWh  
+Hourly range spans €61.79 to €89.76/MWh.
 
-**DA-to-Curve Positioning:**  
-- **Base:** The model fair value is 6.62 EUR/MWh below the trailing 7-day front week base curve mark (86.14 EUR/MWh), signaling a short prompt base stance.  
-- **Peak:** The peak fair value is 3.67 EUR/MWh below the curve mark (88.86 EUR/MWh), which is within the 5 EUR/MWh threshold, indicating a neutral prompt peak position.
+**2. DA-to-Curve Positioning**  
+Current broker marks (front week) are:  
+- Base: €86.14/MWh  
+- Peak: €88.86/MWh  
 
-**Invalidation Triggers:**  
-This view should be reconsidered if any of the following occur before execution:  
-- Day-ahead load, wind, or solar forecast revisions shift residual load by more than 2 GW.  
-- Prompt curve broker marks move beyond the 5 EUR/MWh edge threshold.  
-- Model errors increase significantly compared to validation MAE, especially during scarcity or negative-price hours.  
-- New fuel, carbon, outage, or interconnector information alters marginal plant economics after data pull.
+The model fair values are significantly below these marks:  
+- Base is short by €7.21/MWh  
+- Peak is short by €6.74/MWh  
 
-Monitor these factors closely to maintain model reliability and adjust positioning accordingly.
+This suggests a bearish prompt view relative to the curve, indicating potential downside risk or overvaluation in current market prices.
+
+**3. View Invalidation Criteria**  
+The short prompt positioning should be reconsidered if any of the following occur:  
+- Load, wind, or solar forecast revisions shift residual load by more than 2 GW.  
+- Prompt curve broker marks move beyond ±€5/MWh threshold before trade execution.  
+- Model errors materially widen beyond validation MAE, especially during scarcity or negative-price hours.  
+- New information on fuel, carbon costs, outages, or interconnector status alters marginal plant economics after data pull.
+
+Monitor these factors closely to validate or adjust the trading stance.

@@ -12,15 +12,15 @@
     "source": "trailing_7d_day_ahead_proxy"
   },
   "edges": {
-    "base_eur_mwh": -6.624750202270732,
-    "peak_eur_mwh": -3.6671590277778137
+    "base_eur_mwh": -7.209550975055933,
+    "peak_eur_mwh": -6.741592556699146
   },
   "fair_value": {
-    "base": 79.51664860725309,
-    "max_hour": 94.5679513888889,
-    "min_hour": 59.19090740740742,
-    "offpeak": 73.84391457561726,
-    "peak": 85.18938263888887
+    "base": 78.93184783446789,
+    "max_hour": 89.75860546879039,
+    "min_hour": 61.791611025225784,
+    "offpeak": 75.74874655896822,
+    "peak": 82.11494910996754
   },
   "forecast_date": "2025-12-31",
   "invalidations": [
@@ -30,8 +30,8 @@
     "Fuel, carbon, outage, or interconnector news changes marginal plant economics after the data pull."
   ],
   "positioning": {
-    "base": "Short prompt base: model fair value is 6.62 EUR/MWh below the curve mark.",
-    "peak": "Neutral prompt peak: edge of -3.67 EUR/MWh is inside the threshold."
+    "base": "Short prompt base: model fair value is 7.21 EUR/MWh below the curve mark.",
+    "peak": "Short prompt peak: model fair value is 6.74 EUR/MWh below the curve mark."
   },
   "threshold_eur_mwh": 5.0
 }

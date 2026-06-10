@@ -8,7 +8,7 @@
       "severity": "critical"
     },
     {
-      "detail": "Rows: 4417. Expected at least 4232 for configured date range.",
+      "detail": "Rows: 17544. Expected at least 16813 for configured date range.",
       "name": "row_count",
       "passed": true,
       "severity": "critical"
@@ -51,8 +51,8 @@
     }
   ],
   "data_end": "2025-12-31",
-  "data_start": "2025-07-01",
+  "data_start": "2024-01-01",
   "market": "Germany/Luxembourg day-ahead power",
-  "rows": 4417,
+  "rows": 17544,
   "status": "passed"
 }

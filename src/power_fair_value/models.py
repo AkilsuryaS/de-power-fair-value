@@ -101,12 +101,20 @@ def _peak_mask(df: pd.DataFrame, config: Dict[str, Any]) -> pd.Series:
     return (df["hour_local"] >= start) & (df["hour_local"] < end) & (df["is_weekend"] == 0)
 
 
+def _training_ready(feature_df: pd.DataFrame, config: Dict[str, Any], features: list[str]) -> pd.DataFrame:
+    ready = feature_df.dropna(subset=features + [TARGET]).copy()
+    training_start = config["model"].get("training_start")
+    if training_start:
+        ready = ready[ready["date_local"] >= training_start].copy()
+    return ready
+
+
 def validate_models(
     feature_df: pd.DataFrame,
     config: Dict[str, Any],
 ) -> Tuple[pd.DataFrame, pd.DataFrame]:
     features = model_features()
-    ready = feature_df.dropna(subset=features + [TARGET]).copy()
+    ready = _training_ready(feature_df, config, features)
     test_days = int(config["validation"]["test_days"])
     tuning_days = int(config["validation"].get("tuning_days", 30))
     tuning_cutoff, cutoff_date = _split_cutoffs(ready, test_days, tuning_days)
@@ -188,6 +196,7 @@ def validate_models(
             "feature_columns": features,
             "selected_model": selected_model_name,
             "selection_metric": "lowest tuning-window MAE",
+            "training_start": config["model"].get("training_start"),
         },
     )
     return metrics, predictions
@@ -195,7 +204,10 @@ def validate_models(
 
 def select_model_for_forecast(ready: pd.DataFrame, config: Dict[str, Any], features: list[str]) -> str:
     forecast_date = config["data"]["forecast_date"]
+    training_start = config["model"].get("training_start")
     history = ready[ready["date_local"] < forecast_date].copy()
+    if training_start:
+        history = history[history["date_local"] >= training_start].copy()
     tuning_days = int(config["validation"].get("tuning_days", 30))
     unique_dates = sorted(history["date_local"].unique())
     if len(unique_dates) <= tuning_days + 8:
@@ -219,8 +231,11 @@ def forecast_delivery_day(feature_df: pd.DataFrame, config: Dict[str, Any]) -> p
     features = model_features()
     ready = feature_df.dropna(subset=features + [TARGET]).copy()
     forecast_date = config["data"]["forecast_date"]
+    training_start = config["model"].get("training_start")
 
     train = ready[ready["date_local"] < forecast_date]
+    if training_start:
+        train = train[train["date_local"] >= training_start]
     day = ready[ready["date_local"] == forecast_date].copy()
     if train.empty or day.empty:
         raise ValueError(f"Cannot train and forecast delivery date {forecast_date}.")

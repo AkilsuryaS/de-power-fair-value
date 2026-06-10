@@ -34,9 +34,10 @@
   ],
   "selected_model": "hist_gradient_boosting_absolute_error",
   "selection_metric": "lowest tuning-window MAE",
-  "selection_train_rows": 2280,
+  "selection_train_rows": 6959,
   "test_rows": 1080,
-  "train_rows": 3001,
+  "train_rows": 7680,
+  "training_start": "2025-01-01",
   "tuning_cutoff_date": "2025-10-18",
   "tuning_rows": 721
 }
