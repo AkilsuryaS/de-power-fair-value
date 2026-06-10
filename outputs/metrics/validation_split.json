@@ -1,0 +1,27 @@
+{
+  "cutoff_date": "2025-11-17",
+  "feature_columns": [
+    "hour_local",
+    "day_of_week",
+    "month",
+    "is_weekend",
+    "load_da_forecast_mw",
+    "wind_onshore_da_forecast_mw",
+    "wind_offshore_da_forecast_mw",
+    "solar_da_forecast_mw",
+    "wind_total_da_forecast_mw",
+    "renewables_da_forecast_mw",
+    "residual_load_da_forecast_mw",
+    "price_lag_24",
+    "price_lag_48",
+    "price_lag_168",
+    "price_roll_24_mean",
+    "price_roll_168_mean",
+    "hour_sin",
+    "hour_cos",
+    "dow_sin",
+    "dow_cos"
+  ],
+  "test_rows": 1080,
+  "train_rows": 3169
+}

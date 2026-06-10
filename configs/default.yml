@@ -1,0 +1,37 @@
+project:
+  title: "DE-LU Power Fair Value"
+  author_name: "Akil Surya"
+  author_email: "akilsurya20399@gmail.com"
+
+market:
+  name: "Germany/Luxembourg day-ahead power"
+  country: "de"
+  bidding_zone: "DE-LU"
+  timezone: "Europe/Berlin"
+
+data:
+  start: "2025-07-01"
+  end: "2025-12-31"
+  forecast_date: "2025-12-31"
+  raw_dir: "data/raw"
+  processed_dir: "data/processed"
+  force_refresh: false
+
+validation:
+  test_days: 45
+
+model:
+  random_state: 42
+
+curve:
+  threshold_eur_mwh: 5.0
+  peak_start_hour: 8
+  peak_end_hour: 20
+  front_week_base_eur_mwh:
+  front_week_peak_eur_mwh:
+
+llm:
+  enabled: true
+  provider: "openai"
+  model: "gpt-4.1-mini"
+  allow_offline_fallback: true

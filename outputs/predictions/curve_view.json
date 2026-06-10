@@ -1,0 +1,37 @@
+{
+  "actual_if_available": {
+    "base": 87.31374999999998,
+    "max_hour": 110.1,
+    "min_hour": 74.9325,
+    "offpeak": 81.0925,
+    "peak": 93.53500000000001
+  },
+  "curve_marks": {
+    "front_week_base_eur_mwh": 86.14139880952382,
+    "front_week_peak_eur_mwh": 88.85654166666669,
+    "source": "trailing_7d_day_ahead_proxy"
+  },
+  "edges": {
+    "base_eur_mwh": -6.717002272594513,
+    "peak_eur_mwh": -5.881849949084327
+  },
+  "fair_value": {
+    "base": 79.42439653692931,
+    "max_hour": 92.04373373316503,
+    "min_hour": 56.081027651372736,
+    "offpeak": 75.87410135627626,
+    "peak": 82.97469171758236
+  },
+  "forecast_date": "2025-12-31",
+  "invalidations": [
+    "Day-ahead load, wind, or solar forecast revisions move residual load by more than 2 GW.",
+    "Prompt curve broker marks move by more than the configured edge threshold before execution.",
+    "Recent model errors widen materially versus validation MAE, especially in scarcity or negative-price hours.",
+    "Fuel, carbon, outage, or interconnector news changes marginal plant economics after the data pull."
+  ],
+  "positioning": {
+    "base": "Short prompt base: model fair value is 6.72 EUR/MWh below the curve mark.",
+    "peak": "Short prompt peak: model fair value is 5.88 EUR/MWh below the curve mark."
+  },
+  "threshold_eur_mwh": 5.0
+}

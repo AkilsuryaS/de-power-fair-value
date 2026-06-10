@@ -1,0 +1,38 @@
+[project]
+name = "de-power-fair-value"
+version = "0.1.0"
+description = "Daily fair-value forecasting pipeline for DE-LU power day-ahead prices."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "jinja2>=3.1,<4",
+  "joblib>=1.4,<2",
+  "matplotlib>=3.10,<4",
+  "numpy>=2.2,<3",
+  "openai>=1.60,<2",
+  "pandas>=2.2.3,<3",
+  "python-dotenv>=1,<2",
+  "pyyaml>=6,<7",
+  "requests>=2.32,<3",
+  "scikit-learn>=1.6,<2",
+  "tzdata>=2025.2",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8,<9",
+]
+
+[project.scripts]
+power-fair-value = "power_fair_value.pipeline:main"
+
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]

@@ -1,0 +1,46 @@
+{
+  "drivers": [
+    {
+      "column": "load_da_forecast_mw",
+      "endpoint": "/public_power_forecast",
+      "production_type": "load",
+      "source_url": "https://api.energy-charts.info/public_power_forecast"
+    },
+    {
+      "column": "wind_onshore_da_forecast_mw",
+      "endpoint": "/public_power_forecast",
+      "production_type": "wind_onshore",
+      "source_url": "https://api.energy-charts.info/public_power_forecast"
+    },
+    {
+      "column": "wind_offshore_da_forecast_mw",
+      "endpoint": "/public_power_forecast",
+      "production_type": "wind_offshore",
+      "source_url": "https://api.energy-charts.info/public_power_forecast"
+    },
+    {
+      "column": "solar_da_forecast_mw",
+      "endpoint": "/public_power_forecast",
+      "production_type": "solar",
+      "source_url": "https://api.energy-charts.info/public_power_forecast"
+    }
+  ],
+  "notes": [
+    "Price target is Energy-Charts /price day-ahead spot price for DE-LU.",
+    "Driver features use Energy-Charts /public_power_forecast with forecast_type=day-ahead.",
+    "15-minute driver forecasts are averaged to hourly timestamps before merging to hourly price."
+  ],
+  "price": {
+    "cleaning": "Sub-hourly price rows, if present, are averaged to hourly delivery values.",
+    "deprecated": false,
+    "endpoint": "/price",
+    "license_info": "CC BY 4.0 (creativecommons.org/licenses/by/4.0) from Bundesnetzagentur | SMARD.de",
+    "params": {
+      "bzn": "DE-LU",
+      "end": "2025-12-31",
+      "start": "2025-07-01"
+    },
+    "source_url": "https://api.energy-charts.info/price",
+    "unit": "EUR / MWh"
+  }
+}

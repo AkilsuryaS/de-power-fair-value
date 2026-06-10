@@ -1,0 +1,58 @@
+{
+  "bidding_zone": "DE-LU",
+  "checks": [
+    {
+      "detail": "All required columns present.",
+      "name": "required_columns",
+      "passed": true,
+      "severity": "critical"
+    },
+    {
+      "detail": "Rows: 4417. Expected at least 4232 for configured date range.",
+      "name": "row_count",
+      "passed": true,
+      "severity": "critical"
+    },
+    {
+      "detail": "Duplicate UTC timestamps: 0.",
+      "name": "duplicate_timestamps",
+      "passed": true,
+      "severity": "critical"
+    },
+    {
+      "detail": "Non-hourly UTC intervals: 0.",
+      "name": "hourly_cadence",
+      "passed": true,
+      "severity": "critical"
+    },
+    {
+      "detail": "Missing values by required column: {'timestamp_utc': 0, 'da_price_eur_mwh': 0, 'load_da_forecast_mw': 0, 'wind_onshore_da_forecast_mw': 0, 'wind_offshore_da_forecast_mw': 0, 'solar_da_forecast_mw': 0}.",
+      "name": "missing_values",
+      "passed": true,
+      "severity": "critical"
+    },
+    {
+      "detail": "All prices within [-500, 1000] EUR/MWh.",
+      "name": "price_bounds",
+      "passed": true,
+      "severity": "critical"
+    },
+    {
+      "detail": "Negative driver counts: {'load_da_forecast_mw': 0, 'wind_onshore_da_forecast_mw': 0, 'wind_offshore_da_forecast_mw': 0, 'solar_da_forecast_mw': 0}.",
+      "name": "driver_non_negative",
+      "passed": true,
+      "severity": "critical"
+    },
+    {
+      "detail": "Hours with load forecast below 10 GW: 0.",
+      "name": "load_floor",
+      "passed": true,
+      "severity": "warning"
+    }
+  ],
+  "data_end": "2025-12-31",
+  "data_start": "2025-07-01",
+  "market": "Germany/Luxembourg day-ahead power",
+  "rows": 4417,
+  "status": "passed"
+}
