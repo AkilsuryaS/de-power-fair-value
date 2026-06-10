@@ -7,7 +7,7 @@ Prototype pipeline for forecasting Germany/Luxembourg hourly day-ahead power fai
 - Hourly dataset with DE-LU day-ahead prices and day-ahead forecast drivers for load, wind onshore, wind offshore, and solar.
 - QA output covering schema, missing values, hourly cadence, duplicates, and sanity bounds.
 - Baseline model: same-hour previous-day price.
-- Improved model: histogram gradient boosting with calendar, lagged-price, rolling-price, and fundamental forecast features.
+- Improved model: selected on an earlier tuning window from histogram gradient boosting, extra trees, Huber gradient boosting, and a regularized linear benchmark.
 - Daily fair-value strip, validation metrics, figures, `submission.csv`, and a concise trading report.
 - AI-assisted trading memo generator with logged prompts/outputs.
 
@@ -33,6 +33,16 @@ python -m pytest
 
 If `OPENAI_API_KEY` is available in the environment or a parent `.env`, the memo step calls OpenAI and logs the request/response in `outputs/llm/prompt_log.jsonl`. Without a key, the pipeline writes a deterministic fallback memo so the run remains reproducible.
 
+## Modeling Approach
+
+The validation design avoids choosing a model on the final holdout window:
+
+- Baseline: same-hour previous-day price (`lag_24h`).
+- Candidate selection: train candidates on earlier history and choose the lowest-MAE model on a later tuning window.
+- Final validation: retrain the selected model on all data before the holdout, then evaluate once on the untouched holdout.
+
+The selected model in the latest run is `hist_gradient_boosting_absolute_error`. It uses day-ahead fundamentals, calendar variables, price lags, rolling means/volatility, residual-load ramps, renewable share, and simple peak/solar interactions.
+
 ## Main Outputs
 
 - `data/processed/de_lu_hourly_dataset.csv`
@@ -40,6 +50,7 @@ If `OPENAI_API_KEY` is available in the environment or a parent `.env`, the memo
 - `data/processed/submission.csv`
 - `outputs/qa/qa_report.md`
 - `outputs/metrics/validation_metrics.csv`
+- `outputs/metrics/model_selection.csv`
 - `outputs/predictions/daily_fair_value.csv`
 - `outputs/predictions/curve_view.json`
 - `outputs/llm/prompt_log.jsonl`

@@ -14,6 +14,11 @@ def _metric(metrics: pd.DataFrame, model: str, segment: str, field: str) -> floa
     return float(row.iloc[0][field])
 
 
+def _improved_model(metrics: pd.DataFrame) -> str:
+    row = metrics[(metrics["segment"] == "all_hours") & (metrics["model"] != "baseline_lag_24h")]
+    return str(row.iloc[0]["model"])
+
+
 def plot_outputs(
     backtest_predictions: pd.DataFrame,
     forecast_day: pd.DataFrame,
@@ -25,7 +30,7 @@ def plot_outputs(
     tail = backtest_predictions.tail(24 * 14)
     plt.figure(figsize=(11, 4))
     plt.plot(pd.to_datetime(tail["timestamp_utc"]), tail["da_price_eur_mwh"], label="Actual", linewidth=1.4)
-    plt.plot(pd.to_datetime(tail["timestamp_utc"]), tail["hist_gradient_boosting"], label="Improved model", linewidth=1.2)
+    plt.plot(pd.to_datetime(tail["timestamp_utc"]), tail["selected_model_prediction"], label="Selected model", linewidth=1.2)
     plt.title("Validation Window: Actual vs Improved Model")
     plt.ylabel("EUR/MWh")
     plt.legend()
@@ -59,14 +64,16 @@ def generate_report(
     curve_view: Dict[str, Any],
     llm_record: Dict[str, Any],
     figure_paths: Dict[str, str],
+    split_info: Dict[str, Any],
 ) -> str:
     docs_dir = project_path(config, "docs")
     ensure_dir(docs_dir)
 
+    improved_model = _improved_model(metrics)
     baseline_mae = _metric(metrics, "baseline_lag_24h", "all_hours", "mae")
-    improved_mae = _metric(metrics, "hist_gradient_boosting", "all_hours", "mae")
+    improved_mae = _metric(metrics, improved_model, "all_hours", "mae")
     baseline_rmse = _metric(metrics, "baseline_lag_24h", "all_hours", "rmse")
-    improved_rmse = _metric(metrics, "hist_gradient_boosting", "all_hours", "rmse")
+    improved_rmse = _metric(metrics, improved_model, "all_hours", "rmse")
 
     fv = curve_view["fair_value"]
     edges = curve_view["edges"]
@@ -88,12 +95,14 @@ QA status: **{qa_report['status'].upper()}** across `{qa_report['rows']}` hourly
 
 ## Forecasting
 
-Baseline model: same-hour previous-day price (`lag_24h`). Improved model: histogram gradient boosting with calendar variables, lagged prices, rolling price means, and day-ahead load/wind/solar/residual-load forecasts. The final daily fair value is trained only on data before the fair-value date.
+Baseline model: same-hour previous-day price (`lag_24h`). Improved model: selected from a small, realistic candidate set using an earlier tuning window, then evaluated once on the untouched holdout window. Candidate models include histogram gradient boosting, extra trees, Huber gradient boosting, and a regularized linear benchmark. The selected model is `{improved_model}`. Features include calendar variables, day-ahead load/wind/solar/residual-load forecasts, price lags, rolling means/volatility, residual-load ramps, and renewable-share interactions.
+
+Model selection uses data before `{split_info['cutoff_date']}` only: selection training rows `{split_info['selection_train_rows']}`, tuning rows `{split_info['tuning_rows']}`. Final validation rows `{split_info['test_rows']}` remain untouched until the selected model is evaluated.
 
 | Model | MAE | RMSE |
 |---|---:|---:|
 | Baseline lag 24h | {baseline_mae:.2f} | {baseline_rmse:.2f} |
-| Improved gradient boosting | {improved_mae:.2f} | {improved_rmse:.2f} |
+| Selected improved model | {improved_mae:.2f} | {improved_rmse:.2f} |
 
 Validation plot: `{figure_paths['validation_plot']}`  
 Daily shape plot: `{figure_paths['forecast_plot']}`

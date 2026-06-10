@@ -19,6 +19,7 @@ data:
 
 validation:
   test_days: 45
+  tuning_days: 30
 
 model:
   random_state: 42

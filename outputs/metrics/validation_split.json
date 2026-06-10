@@ -17,11 +17,26 @@
     "price_lag_168",
     "price_roll_24_mean",
     "price_roll_168_mean",
+    "price_lag_72",
+    "price_lag_336",
+    "price_roll_24_std",
+    "price_roll_168_std",
+    "residual_load_lag_24",
+    "residual_load_ramp_1h",
+    "residual_load_ramp_24h",
+    "renewable_share_forecast",
+    "solar_x_hour",
+    "residual_x_peak",
     "hour_sin",
     "hour_cos",
     "dow_sin",
     "dow_cos"
   ],
+  "selected_model": "hist_gradient_boosting_absolute_error",
+  "selection_metric": "lowest tuning-window MAE",
+  "selection_train_rows": 2280,
   "test_rows": 1080,
-  "train_rows": 3169
+  "train_rows": 3001,
+  "tuning_cutoff_date": "2025-10-18",
+  "tuning_rows": 721
 }

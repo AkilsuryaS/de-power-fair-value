@@ -13,22 +13,24 @@ QA status: **PASSED** across `4417` hourly rows. Checks cover required columns, 
 
 ## Forecasting
 
-Baseline model: same-hour previous-day price (`lag_24h`). Improved model: histogram gradient boosting with calendar variables, lagged prices, rolling price means, and day-ahead load/wind/solar/residual-load forecasts. The final daily fair value is trained only on data before the fair-value date.
+Baseline model: same-hour previous-day price (`lag_24h`). Improved model: selected from a small, realistic candidate set using an earlier tuning window, then evaluated once on the untouched holdout window. Candidate models include histogram gradient boosting, extra trees, Huber gradient boosting, and a regularized linear benchmark. The selected model is `hist_gradient_boosting_absolute_error`. Features include calendar variables, day-ahead load/wind/solar/residual-load forecasts, price lags, rolling means/volatility, residual-load ramps, and renewable-share interactions.
+
+Model selection uses data before `2025-11-17` only: selection training rows `2280`, tuning rows `721`. Final validation rows `1080` remain untouched until the selected model is evaluated.
 
 | Model | MAE | RMSE |
 |---|---:|---:|
 | Baseline lag 24h | 24.34 | 39.64 |
-| Improved gradient boosting | 13.57 | 23.98 |
+| Selected improved model | 12.33 | 21.64 |
 
 Validation plot: `outputs/figures/validation_actual_vs_pred.png`  
 Daily shape plot: `outputs/figures/daily_fair_value_shape.png`
 
 ## DA-To-Curve View
 
-For `2025-12-31`, model fair value is **79.42 EUR/MWh base** and **82.97 EUR/MWh peak**. Curve marks use `trailing_7d_day_ahead_proxy`: base `86.14`, peak `88.86` EUR/MWh.
+For `2025-12-31`, model fair value is **79.52 EUR/MWh base** and **85.19 EUR/MWh peak**. Curve marks use `trailing_7d_day_ahead_proxy`: base `86.14`, peak `88.86` EUR/MWh.
 
-Base edge: **-6.72 EUR/MWh**. Short prompt base: model fair value is 6.72 EUR/MWh below the curve mark.  
-Peak edge: **-5.88 EUR/MWh**. Short prompt peak: model fair value is 5.88 EUR/MWh below the curve mark.
+Base edge: **-6.62 EUR/MWh**. Short prompt base: model fair value is 6.62 EUR/MWh below the curve mark.  
+Peak edge: **-3.67 EUR/MWh**. Neutral prompt peak: edge of -3.67 EUR/MWh is inside the threshold.
 
 Use: compare the forecast strip with executable prompt-week/base and peak marks to decide whether the prompt curve is cheap or rich versus expected cash settlement. Invalidate the view if residual-load forecasts revise by more than 2 GW, curve marks move by more than the edge threshold, or new fuel/carbon/outage/interconnector information changes marginal pricing before execution.
 

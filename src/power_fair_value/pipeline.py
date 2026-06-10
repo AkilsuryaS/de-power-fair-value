@@ -13,19 +13,28 @@ from power_fair_value.llm import generate_trading_memo
 from power_fair_value.models import forecast_delivery_day, validate_models
 from power_fair_value.qa import run_qa
 from power_fair_value.report import generate_report, plot_outputs
-from power_fair_value.utils import ensure_dir, write_json
+from power_fair_value.utils import ensure_dir, read_json, write_json
 
 
 def _metrics_context(metrics: pd.DataFrame) -> Dict[str, float]:
+    improved_model = (
+        metrics.loc[
+            (metrics["segment"] == "all_hours") & (metrics["model"] != "baseline_lag_24h"),
+            "model",
+        ]
+        .iloc[0]
+    )
+
     def lookup(model: str, field: str) -> float:
         row = metrics[(metrics["model"] == model) & (metrics["segment"] == "all_hours")]
         return float(row.iloc[0][field])
 
     return {
         "baseline_all_hours_mae": lookup("baseline_lag_24h", "mae"),
-        "improved_all_hours_mae": lookup("hist_gradient_boosting", "mae"),
+        "improved_all_hours_mae": lookup(improved_model, "mae"),
         "baseline_all_hours_rmse": lookup("baseline_lag_24h", "rmse"),
-        "improved_all_hours_rmse": lookup("hist_gradient_boosting", "rmse"),
+        "improved_all_hours_rmse": lookup(improved_model, "rmse"),
+        "improved_model": improved_model,
     }
 
 
@@ -74,8 +83,9 @@ def run_pipeline(config_path: str) -> Dict[str, Any]:
     llm_record = generate_trading_memo(llm_context, config)
 
     print("Writing figures and report...")
+    split_info = read_json(project_path(config, "outputs/metrics/validation_split.json"))
     figures = plot_outputs(backtest_predictions, forecast_day, config)
-    report_path = generate_report(config, qa_report, metrics, curve_view, llm_record, figures)
+    report_path = generate_report(config, qa_report, metrics, curve_view, llm_record, figures, split_info)
 
     return {
         "dataset": str(project_path(config, "data/processed/de_lu_hourly_dataset.csv")),
