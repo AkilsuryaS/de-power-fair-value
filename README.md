@@ -58,6 +58,16 @@ The selected model in the latest run is `hist_gradient_boosting_absolute_error`.
 - `outputs/llm/prompt_log.jsonl`
 - `docs/fair_value_report.md`
 
+## Evaluation Checklist
+
+| Evaluation area | How this repo addresses it | Key artifacts |
+|---|---|---|
+| Dataset correctness and QA | Public DE-LU hourly day-ahead prices are merged with day-ahead load, wind, and solar forecast drivers; QA checks schema, cadence, duplicates, missing values, bounds, and driver sanity. | `data/processed/de_lu_hourly_dataset.csv`, `outputs/qa/qa_report.md`, `outputs/qa/source_metadata.json` |
+| Forecasting rigor | Includes a lag-24h baseline, multiple candidate improved models, tuning-window model selection, and untouched holdout validation with MAE/RMSE/bias/R2. | `src/power_fair_value/models.py`, `outputs/metrics/validation_metrics.csv`, `outputs/metrics/model_selection.csv`, `outputs/metrics/validation_split.json` |
+| Trading relevance | Converts hourly fair value into base/peak prompt-curve views, edge versus curve marks, directional guidance, and invalidation triggers. | `src/power_fair_value/curve.py`, `outputs/predictions/curve_view.json`, `docs/fair_value_report.md` |
+| Engineering quality and reproducibility | Provides a clean package layout, config-driven run, one-command pipeline, tests, cached raw data, and regenerated outputs. | `README.md`, `configs/default.yml`, `scripts/run_pipeline.py`, `pyproject.toml`, `tests/` |
+| Programmatic AI/LLM use | Uses an OpenAI-powered memo step to draft a desk-facing trading note from structured QA, validation, and curve-view outputs; prompts and responses are logged. | `src/power_fair_value/llm.py`, `outputs/llm/trading_memo.md`, `outputs/llm/prompt_log.jsonl` |
+
 ## Prompt-Curve Translation
 
 The default config compares the model's fair-value delivery-day base and peak strips with a trailing seven-day day-ahead proxy when explicit broker or exchange prompt-week marks are not supplied. For a more realistic desk workflow, set `curve.front_week_base_eur_mwh` and `curve.front_week_peak_eur_mwh` in `configs/default.yml`.
