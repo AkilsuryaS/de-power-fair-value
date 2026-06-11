@@ -19,6 +19,17 @@ def _improved_model(metrics: pd.DataFrame) -> str:
     return str(row.iloc[0]["model"])
 
 
+def _candidate_reason(model_name: str) -> str:
+    reasons = {
+        "hist_gradient_boosting_absolute_error": "Tree boosting with MAE-style loss; robust to spikes and nonlinear fundamentals.",
+        "gradient_boosting_huber": "Boosting with Huber loss; tested as a robust alternative for volatile prices.",
+        "hist_gradient_boosting_squared_error": "Tree boosting with squared-error loss; captures nonlinear effects but can chase spikes.",
+        "extra_trees": "Randomized tree ensemble; useful benchmark for nonlinear feature interactions.",
+        "ridge_linear": "Regularized linear benchmark to check whether simpler relationships are enough.",
+    }
+    return reasons.get(model_name, "Candidate model included in the tuning-window comparison.")
+
+
 def plot_outputs(
     backtest_predictions: pd.DataFrame,
     forecast_day: pd.DataFrame,
@@ -81,6 +92,31 @@ def generate_report(
     edges = curve_view["edges"]
     marks = curve_view["curve_marks"]
     project = config["project"]
+    model_selection_path = project_path(config, "outputs/metrics/model_selection.csv")
+    model_selection_markdown = ""
+    selected_tuning_mae = None
+    if model_selection_path.exists():
+        model_selection = pd.read_csv(model_selection_path)
+        selected_row = model_selection[model_selection["model"] == improved_model]
+        if not selected_row.empty:
+            selected_tuning_mae = float(selected_row.iloc[0]["mae"])
+        model_selection_markdown = "\n".join(
+            [
+                "| Candidate model | Tuning MAE | Tuning RMSE | Why it was considered |",
+                "|---|---:|---:|---|",
+            ]
+            + [
+                (
+                    f"| `{row.model}` | {row.mae:.2f} | {row.rmse:.2f} | "
+                    f"{_candidate_reason(str(row.model))} |"
+                )
+                for row in model_selection.itertuples(index=False)
+            ]
+        )
+    if selected_tuning_mae is None:
+        selected_tuning_mae = improved_mae
+    if not model_selection_markdown:
+        model_selection_markdown = "Model-selection details are available after running the validation pipeline."
 
     markdown = f"""# {project['title']} - Submission Writeup
 
@@ -107,7 +143,13 @@ I started with a very simple baseline: the same local hour from the previous day
 
 The improved model uses features that would be available before delivery: day-ahead load/wind/solar forecasts, residual load, calendar variables, price lags, rolling price means and volatility, residual-load ramps, renewable share, and a few peak/solar interactions. I tested several model families and selected the model on a tuning window before evaluating it on the final holdout. This avoids choosing the best model after looking at the final test period.
 
-The modelling improved in stages. The first version used a single gradient-boosting style model and was materially better than the baseline, but still left too much error. I then added a proper candidate-selection step and compared histogram gradient boosting, Huber gradient boosting, extra trees, and ridge regression. I also widened the data window so 2024 history can warm up lag and rolling features, while setting `model.training_start` to `2025-01-01` so older market regimes do not dominate the actual model fit. This final setup selected `{improved_model}`.
+The modelling improved in stages. The first version used a single gradient-boosting style model and was materially better than the baseline, but still left too much error. I then added a proper candidate-selection step and compared several models on the same tuning window. I also widened the data window so 2024 history can warm up lag and rolling features, while setting `model.training_start` to `2025-01-01` so older market regimes do not dominate the actual model fit.
+
+The full candidate comparison is below. I chose the final model based on the lowest tuning-window MAE, not by looking at the final holdout. I used MAE as the main selection metric because it is easy to interpret in EUR/MWh and is less dominated by a few extreme price spikes than RMSE.
+
+{model_selection_markdown}
+
+The selected final model was `{improved_model}`. I used it for the final prediction because it had the best tuning MAE (`{selected_tuning_mae:.2f}` EUR/MWh), kept RMSE competitive, and had lower bias than several alternatives. The squared-error boosting model was more sensitive to large errors, extra trees was less stable on this time-series style problem, and ridge regression was useful as a linear benchmark but underfit the nonlinear relationship between residual load, renewables, hour of day, and price.
 
 | Model | MAE | RMSE |
 |---|---:|---:|

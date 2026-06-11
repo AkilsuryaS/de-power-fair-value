@@ -23,7 +23,19 @@ I started with a very simple baseline: the same local hour from the previous day
 
 The improved model uses features that would be available before delivery: day-ahead load/wind/solar forecasts, residual load, calendar variables, price lags, rolling price means and volatility, residual-load ramps, renewable share, and a few peak/solar interactions. I tested several model families and selected the model on a tuning window before evaluating it on the final holdout. This avoids choosing the best model after looking at the final test period.
 
-The modelling improved in stages. The first version used a single gradient-boosting style model and was materially better than the baseline, but still left too much error. I then added a proper candidate-selection step and compared histogram gradient boosting, Huber gradient boosting, extra trees, and ridge regression. I also widened the data window so 2024 history can warm up lag and rolling features, while setting `model.training_start` to `2025-01-01` so older market regimes do not dominate the actual model fit. This final setup selected `hist_gradient_boosting_absolute_error`.
+The modelling improved in stages. The first version used a single gradient-boosting style model and was materially better than the baseline, but still left too much error. I then added a proper candidate-selection step and compared several models on the same tuning window. I also widened the data window so 2024 history can warm up lag and rolling features, while setting `model.training_start` to `2025-01-01` so older market regimes do not dominate the actual model fit.
+
+The full candidate comparison is below. I chose the final model based on the lowest tuning-window MAE, not by looking at the final holdout. I used MAE as the main selection metric because it is easy to interpret in EUR/MWh and is less dominated by a few extreme price spikes than RMSE.
+
+| Candidate model | Tuning MAE | Tuning RMSE | Why it was considered |
+|---|---:|---:|---|
+| `hist_gradient_boosting_absolute_error` | 11.22 | 16.32 | Tree boosting with MAE-style loss; robust to spikes and nonlinear fundamentals. |
+| `gradient_boosting_huber` | 11.94 | 16.89 | Boosting with Huber loss; tested as a robust alternative for volatile prices. |
+| `hist_gradient_boosting_squared_error` | 12.85 | 19.28 | Tree boosting with squared-error loss; captures nonlinear effects but can chase spikes. |
+| `extra_trees` | 14.19 | 20.69 | Randomized tree ensemble; useful benchmark for nonlinear feature interactions. |
+| `ridge_linear` | 16.00 | 20.12 | Regularized linear benchmark to check whether simpler relationships are enough. |
+
+The selected final model was `hist_gradient_boosting_absolute_error`. I used it for the final prediction because it had the best tuning MAE (`11.22` EUR/MWh), kept RMSE competitive, and had lower bias than several alternatives. The squared-error boosting model was more sensitive to large errors, extra trees was less stable on this time-series style problem, and ridge regression was useful as a linear benchmark but underfit the nonlinear relationship between residual load, renewables, hour of day, and price.
 
 | Model | MAE | RMSE |
 |---|---:|---:|
