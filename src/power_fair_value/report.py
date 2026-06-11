@@ -123,6 +123,6 @@ The pipeline includes `power_fair_value.llm.generate_trading_memo`, which sends 
 LLM provider used in this run: `{llm_record['provider_used']}`.
 """
 
-    report_path = docs_dir / "fair_value_report.md"
+    report_path = docs_dir / "submission_writeup_report.md"
     report_path.write_text(markdown, encoding="utf-8")
     return str(report_path)
