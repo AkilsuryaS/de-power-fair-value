@@ -252,4 +252,5 @@ def forecast_delivery_day(feature_df: pd.DataFrame, config: Dict[str, Any]) -> p
     ensure_dir(out_dir)
     day.to_csv(out_dir / "daily_fair_value.csv", index=False)
     day[["id", "y_pred"]].to_csv(project_path(config, "data/processed/submission.csv"), index=False)
+    day[["id", "y_pred"]].to_csv(project_path(config, "submission.csv"), index=False)
     return day

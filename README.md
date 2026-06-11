@@ -47,6 +47,8 @@ The selected model in the latest run is `hist_gradient_boosting_absolute_error`.
 
 ## Main Outputs
 
+- `submission_writeup_report.md`
+- `submission.csv`
 - `data/processed/de_lu_hourly_dataset.csv`
 - `data/processed/model_features.csv`
 - `data/processed/submission.csv`
@@ -64,7 +66,7 @@ The selected model in the latest run is `hist_gradient_boosting_absolute_error`.
 |---|---|---|
 | Dataset correctness and QA | Public DE-LU hourly day-ahead prices are merged with day-ahead load, wind, and solar forecast drivers; QA checks schema, cadence, duplicates, missing values, bounds, and driver sanity. | [dataset](data/processed/de_lu_hourly_dataset.csv), [QA report](outputs/qa/qa_report.md), [source metadata](outputs/qa/source_metadata.json) |
 | Forecasting rigor | Includes a lag-24h baseline, multiple candidate improved models, tuning-window model selection, and untouched holdout validation with MAE/RMSE/bias/R2. | [model code](src/power_fair_value/models.py), [validation metrics](outputs/metrics/validation_metrics.csv), [model selection](outputs/metrics/model_selection.csv), [validation split](outputs/metrics/validation_split.json) |
-| Trading relevance | Converts hourly fair value into base/peak prompt-curve views, edge versus curve marks, directional guidance, and invalidation triggers. | [curve code](src/power_fair_value/curve.py), [curve view output](outputs/predictions/curve_view.json), [submission writeup report](docs/submission_writeup_report.md) |
+| Trading relevance | Converts hourly fair value into base/peak prompt-curve views, edge versus curve marks, directional guidance, and invalidation triggers. | [curve code](src/power_fair_value/curve.py), [curve view output](outputs/predictions/curve_view.json), [submission writeup report](submission_writeup_report.md) |
 | Engineering quality and reproducibility | Provides a clean package layout, config-driven run, one-command pipeline, tests, cached raw data, and regenerated outputs. | [README](README.md), [config](configs/default.yml), [pipeline script](scripts/run_pipeline.py), [project dependencies](pyproject.toml), [tests](tests/) |
 | Programmatic AI/LLM use | Uses an OpenAI-powered memo step to draft a desk-facing trading note from structured QA, validation, and curve-view outputs; prompts and responses are logged. | [LLM code](src/power_fair_value/llm.py), [trading memo](outputs/llm/trading_memo.md), [prompt log](outputs/llm/prompt_log.jsonl) |
 
