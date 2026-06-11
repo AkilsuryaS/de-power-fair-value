@@ -74,51 +74,61 @@ def generate_report(
     improved_mae = _metric(metrics, improved_model, "all_hours", "mae")
     baseline_rmse = _metric(metrics, "baseline_lag_24h", "all_hours", "rmse")
     improved_rmse = _metric(metrics, improved_model, "all_hours", "rmse")
+    peak_mae = _metric(metrics, improved_model, "peak_weekday", "mae")
+    offpeak_mae = _metric(metrics, improved_model, "offpeak_or_weekend", "mae")
 
     fv = curve_view["fair_value"]
     edges = curve_view["edges"]
     marks = curve_view["curve_marks"]
     project = config["project"]
 
-    markdown = f"""# {project['title']}
+    markdown = f"""# {project['title']} - Submission Writeup
 
 **Name:** {project['author_name']}  
 **Email:** {project['author_email']}  
 **Market:** {config['market']['name']} (`{config['market']['bidding_zone']}`)  
 **Run window:** `{config['data']['start']}` to `{config['data']['end']}`; fair-value date `{config['data']['forecast_date']}`
 
-## Data And QA
+## 1. Project Objective
 
-The dataset is hourly DE-LU day-ahead price with day-ahead forecast drivers for load, wind onshore, wind offshore, and solar. Sources are the public Fraunhofer Energy-Charts API: `/price` for day-ahead spot prices and `/public_power_forecast` for fundamental forecasts. Price data for DE-LU is licensed CC BY 4.0 from Bundesnetzagentur/SMARD.de as reported by the API.
+The aim of this project was to build a small but realistic fair-value pipeline for the Germany/Luxembourg day-ahead power market. I focused on next-day hourly prices because this is the most direct way to connect a power forecast to a prompt curve view. The final output is not just a price forecast; it also converts the hourly forecast into base and peak fair values, compares them with a prompt-curve proxy, and gives a simple trade direction with clear invalidation points.
 
-QA status: **{qa_report['status'].upper()}** across `{qa_report['rows']}` hourly rows. Checks cover required columns, duplicate timestamps, hourly UTC cadence, missing values, price bounds, and non-negative driver forecasts. Full QA output is in `outputs/qa/qa_report.md`.
+## 2. Data, Cleaning, And QA
 
-## Forecasting
+I used public Fraunhofer Energy-Charts data. The target is hourly DE-LU day-ahead spot price from `/price`. The fundamental drivers come from `/public_power_forecast` using day-ahead forecasts for load, wind onshore, wind offshore, and solar. From these drivers I also created wind total, renewable generation, renewable share, and residual load. Residual load is especially important in power because it is a practical proxy for how much conventional generation the market still needs after wind and solar.
 
-Baseline model: same-hour previous-day price (`lag_24h`). Improved model: selected from a small, realistic candidate set using an earlier tuning window, then evaluated once on the untouched holdout window. Candidate models include histogram gradient boosting, extra trees, Huber gradient boosting, and a regularized linear benchmark. The selected model is `{improved_model}`. Features include calendar variables, day-ahead load/wind/solar/residual-load forecasts, price lags, rolling means/volatility, residual-load ramps, and renewable-share interactions.
+The raw API data is cached in `data/raw/`, then converted into an hourly modelling table. I resampled any sub-hourly observations to hourly values, aligned everything on UTC timestamps, and added local calendar fields such as local date, local hour, day of week, month, and weekend flag. The final processed dataset has `{qa_report['rows']}` hourly rows and passed the QA checks. The checks cover required columns, duplicate timestamps, hourly cadence, missing values, price bounds, non-negative forecast drivers, and a basic load sanity check. The detailed QA output is in `outputs/qa/qa_report.md`.
 
-Model selection uses data before `{split_info['cutoff_date']}` only: selection training rows `{split_info['selection_train_rows']}`, tuning rows `{split_info['tuning_rows']}`. Final validation rows `{split_info['test_rows']}` remain untouched until the selected model is evaluated.
+For EDA, I mainly used the validation and daily-shape plots rather than adding a separate exploratory notebook. The validation plot shows that the model follows the broad level and direction of the market much better than the lag baseline, although sharp price moves remain the hardest part. The daily fair-value plot is useful for trading because it shows the intraday shape: the model does not only produce one daily number, it produces an hourly strip that can be averaged into base, peak, and off-peak views.
+
+## 3. Forecasting Approach And Model Improvement
+
+I started with a very simple baseline: the same local hour from the previous day (`price_lag_24`). This is a fair baseline for day-ahead power because prices have strong daily seasonality, but it is also limited because it cannot react properly when load, wind, solar, or residual load changes.
+
+The improved model uses features that would be available before delivery: day-ahead load/wind/solar forecasts, residual load, calendar variables, price lags, rolling price means and volatility, residual-load ramps, renewable share, and a few peak/solar interactions. I tested several model families and selected the model on a tuning window before evaluating it on the final holdout. This avoids choosing the best model after looking at the final test period.
+
+The modelling improved in stages. The first version used a single gradient-boosting style model and was materially better than the baseline, but still left too much error. I then added a proper candidate-selection step and compared histogram gradient boosting, Huber gradient boosting, extra trees, and ridge regression. I also widened the data window so 2024 history can warm up lag and rolling features, while setting `model.training_start` to `2025-01-01` so older market regimes do not dominate the actual model fit. This final setup selected `{improved_model}`.
 
 | Model | MAE | RMSE |
 |---|---:|---:|
 | Baseline lag 24h | {baseline_mae:.2f} | {baseline_rmse:.2f} |
 | Selected improved model | {improved_mae:.2f} | {improved_rmse:.2f} |
 
-Validation plot: `{figure_paths['validation_plot']}`  
-Daily shape plot: `{figure_paths['forecast_plot']}`
+The final all-hours MAE is `{improved_mae:.2f}` EUR/MWh versus `{baseline_mae:.2f}` EUR/MWh for the baseline. Peak weekday hours remain harder, with MAE around `{peak_mae:.2f}` EUR/MWh, while off-peak and weekend hours are much cleaner at about `{offpeak_mae:.2f}` EUR/MWh. That split makes sense: peak hours are more exposed to scarcity, ramping, and marginal fuel/outage effects that are not fully captured in the public dataset.
 
-## DA-To-Curve View
+## 4. Plots, Final Prediction, And Curve View
 
-For `{curve_view['forecast_date']}`, model fair value is **{fv['base']:.2f} EUR/MWh base** and **{fv['peak']:.2f} EUR/MWh peak**. Curve marks use `{marks['source']}`: base `{marks['front_week_base_eur_mwh']:.2f}`, peak `{marks['front_week_peak_eur_mwh']:.2f}` EUR/MWh.
+The validation plot in `{figure_paths['validation_plot']}` compares actual prices with the selected model over the final holdout period. My main takeaway is that the model captures the broad price level and many day-to-day moves, but still under-reacts in some high-price periods. This is realistic for a public-data prototype: without fuel, carbon, outages, interconnector flows, and weather forecast revisions, the model should not be expected to explain every spike.
 
-Base edge: **{edges['base_eur_mwh']:.2f} EUR/MWh**. {curve_view['positioning']['base']}  
-Peak edge: **{edges['peak_eur_mwh']:.2f} EUR/MWh**. {curve_view['positioning']['peak']}
+For the delivery date `{curve_view['forecast_date']}`, the model forecast is `{fv['base']:.2f}` EUR/MWh for base, `{fv['peak']:.2f}` EUR/MWh for peak, and `{fv['offpeak']:.2f}` EUR/MWh for off-peak. The hourly forecast ranges from `{fv['min_hour']:.2f}` to `{fv['max_hour']:.2f}` EUR/MWh. The daily shape plot in `{figure_paths['forecast_plot']}` shows how the model distributes value across the day rather than relying only on a flat daily average.
 
-Use: compare the forecast strip with executable prompt-week/base and peak marks to decide whether the prompt curve is cheap or rich versus expected cash settlement. Invalidate the view if residual-load forecasts revise by more than 2 GW, curve marks move by more than the edge threshold, or new fuel/carbon/outage/interconnector information changes marginal pricing before execution.
+To translate the forecast into a prompt curve view, I compared the model base and peak fair values with a trailing seven-day day-ahead proxy. In a live desk setup this would be replaced by executable broker or exchange marks. The proxy curve marks are `{marks['front_week_base_eur_mwh']:.2f}` EUR/MWh for base and `{marks['front_week_peak_eur_mwh']:.2f}` EUR/MWh for peak. The model is lower than both marks: base edge is `{edges['base_eur_mwh']:.2f}` EUR/MWh and peak edge is `{edges['peak_eur_mwh']:.2f}` EUR/MWh. Since both edges are larger than the configured `{curve_view['threshold_eur_mwh']:.0f}` EUR/MWh threshold, the pipeline gives a short prompt base and short prompt peak view.
 
-## AI/LLM Component
+I would invalidate or reduce confidence in this view if residual-load forecasts move by more than 2 GW, if prompt marks move by more than the signal threshold, or if fresh fuel, carbon, outage, or interconnector news changes the likely marginal plant stack. I would also be more cautious in peak hours because the validation error is meaningfully higher there.
 
-The pipeline includes `power_fair_value.llm.generate_trading_memo`, which sends QA, validation, and curve-view context to OpenAI when `OPENAI_API_KEY` is available. Prompts and outputs are logged in `outputs/llm/prompt_log.jsonl`; when no key is available, a deterministic offline memo is written so the pipeline remains reproducible. This reduces manual effort by drafting the desk-facing trading note from structured model outputs.
+## 5. AI/LLM Component
+
+The LLM is deliberately not used to forecast prices. The forecasting is done by the machine-learning model described above. I used the LLM only as a workflow helper after the numbers are produced. The pipeline sends structured QA, validation, and curve-view context to OpenAI and asks it to draft a short trading memo. The prompt and output are logged in `outputs/llm/prompt_log.jsonl`, and the memo is saved in `outputs/llm/trading_memo.md`. This is useful because it reduces manual write-up time while keeping the numerical forecast and trading signal fully auditable.
 
 LLM provider used in this run: `{llm_record['provider_used']}`.
 """
