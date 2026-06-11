@@ -154,7 +154,7 @@ The selected final model was `{improved_model}`. I used it for the final predict
 | Model | MAE | RMSE |
 |---|---:|---:|
 | Baseline lag 24h | {baseline_mae:.2f} | {baseline_rmse:.2f} |
-| Selected improved model | {improved_mae:.2f} | {improved_rmse:.2f} |
+| `{improved_model}` | {improved_mae:.2f} | {improved_rmse:.2f} |
 
 The final all-hours MAE is `{improved_mae:.2f}` EUR/MWh versus `{baseline_mae:.2f}` EUR/MWh for the baseline. Peak weekday hours remain harder, with MAE around `{peak_mae:.2f}` EUR/MWh, while off-peak and weekend hours are much cleaner at about `{offpeak_mae:.2f}` EUR/MWh. That split makes sense: peak hours are more exposed to scarcity, ramping, and marginal fuel/outage effects that are not fully captured in the public dataset.
 

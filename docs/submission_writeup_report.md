@@ -40,7 +40,7 @@ The selected final model was `hist_gradient_boosting_absolute_error`. I used it 
 | Model | MAE | RMSE |
 |---|---:|---:|
 | Baseline lag 24h | 24.34 | 39.64 |
-| Selected improved model | 11.15 | 17.31 |
+| `hist_gradient_boosting_absolute_error` | 11.15 | 17.31 |
 
 The final all-hours MAE is `11.15` EUR/MWh versus `24.34` EUR/MWh for the baseline. Peak weekday hours remain harder, with MAE around `17.62` EUR/MWh, while off-peak and weekend hours are much cleaner at about `7.40` EUR/MWh. That split makes sense: peak hours are more exposed to scarcity, ramping, and marginal fuel/outage effects that are not fully captured in the public dataset.
 
